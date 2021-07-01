@@ -1,6 +1,8 @@
 import asyncio
 import aiofiles
 import aiohttp
+import glob
+import json
 
 class Downloader:
     def __init__(self, pool_size=5):
@@ -68,9 +70,18 @@ class Downloader:
             else:
                 self.failed.append(result)
 
+    def consume(self, name):
+        files = glob.glob(name)
+        for f in files:
+            with open(f, "r") as fhandle:
+                data = json.load(fhandle)
+                for datum in data["data"]:
+                    self.add(datum["url"], datum["fpath"])
+
     def start(self):
         self.workers = asyncio.gather(*[asyncio.ensure_future(self.worker()) for i in range(self.pool_size)])
         self.loop.run_until_complete(self.workers)
 
 handle = Downloader(pool_size=10)
-
+handle.consume("eggs/dakini/*.json")
+handle.download()

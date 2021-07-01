@@ -6,6 +6,7 @@ import requests
 
 class RedditScraper:
     TARGET = "eggs"
+    DPATH = "downloads"
     def __init__(self, name, duration):
         #presently supporting only subreddit
         self.name = name
@@ -19,6 +20,24 @@ class RedditScraper:
             os.makedirs(fpath, exist_ok=True)
         return fpath
 
+    def enrich_data(self, data):
+        results = {}
+        results["data"] = []
+        for datum in data["data"]:
+            try:
+                if datum["post_hint"] == "image":
+                    temp = {}
+                    name = datum["title"]
+                    temp["title"] = name
+                    temp["url"] = datum["url"]
+                    ext = datum["url"].split(".")[-1]
+                    temp["fpath"] = os.path.join(self.DPATH, self.name, name+"."+ext)
+                    os.makedirs(os.path.join(self.DPATH, self.name), exist_ok=True)
+                    results["data"].append(temp)
+            except:
+                continue
+        return results
+
     def crawl(self):
         for day in range(self.duration, 1, -1):
             date = self.now - timedelta(days=day)
@@ -31,7 +50,7 @@ class RedditScraper:
             print("downloading day {}".format(day))
             uri = self.base.format(day, day-1, self.name)
             data = requests.get(uri).json()
-
+            data = self.enrich_data(data)
             with open(fpath, "w") as f:
                 json.dump(data, f, indent=2)
 
