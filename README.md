@@ -5,6 +5,7 @@ a reddit content downloader.
 
 - [X] async downloader queue
 - [ ] scrape media from redditor
-- [ ] scrape media from subreddit
+- [X] scrape media from subreddit
+- [ ] enrich media
 - [ ] establish API to accept requests
 - [ ] Svelte UI
