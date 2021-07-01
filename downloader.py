@@ -3,11 +3,20 @@ import aiofiles
 import aiohttp
 import glob
 import json
+import signal
+import sys
+import os
+import traceback
+
+def exit_handle(signum, frame):
+    global handle
+    handle.close(force=True)
+    sys.exit(0)
 
 class Downloader:
     def __init__(self, pool_size=5):
         self.loop = asyncio.get_event_loop()
-        self.queue = asyncio.Queue(loop=self.loop)
+        self.queue = asyncio.Queue()
         self.pool_size = pool_size
         self.running = False
         self.session = False
@@ -44,17 +53,29 @@ class Downloader:
     def add(self, uri, fpath):
         self.queue.put_nowait((uri, fpath))
 
+    def check_content(self, resp, fpath):
+        if not os.path.exists(fpath):
+            return False
+        length = int(resp.headers["content-length"])
+        flength = os.stat(fpath).st_size
+        if length == flength:
+            print("file already downloaded")
+        return length == flength
+
     async def download(self, uri, fpath, retries=5):
         try:
             async with self.session.get(uri) as resp:
                 if resp.status == 200:
+                    if self.check_content(resp, fpath):
+                        return self.successify(uri, fpath)
                     async with aiofiles.open(fpath, "wb") as f:
                         async for chunk in resp.content.iter_chunked(1024):
                             await f.write(chunk)
             return self.successify(uri, fpath)
         except Exception as error:
+            print(traceback.print_exc())
             if retries > 0:
-                return self.download(uri, fpath, retries-1)
+                return await self.download(uri, fpath, retries-1)
             else:
                 return self.errorify(uri, fpath, error)
 
@@ -84,6 +105,9 @@ class Downloader:
         self.workers = asyncio.gather(*[self.worker() for i in range(self.pool_size)])
         self.loop.run_until_complete(self.workers)
 
+
+signal.signal(signal.SIGINT, exit_handle)
+
 handle = Downloader(pool_size=10)
-handle.consume("eggs/dakini/*.json")
+handle.consume("eggs/danidaniels/*.json")
 handle.start()

@@ -27,7 +27,7 @@ class RedditScraper:
             try:
                 if datum["post_hint"] == "image":
                     temp = {}
-                    name = datum["title"]
+                    name = datum["title"].replace("/", "-")
                     temp["title"] = name
                     temp["url"] = datum["url"]
                     ext = datum["url"].split(".")[-1]
@@ -39,6 +39,7 @@ class RedditScraper:
         return results
 
     def crawl(self):
+        print(self.name)
         for day in range(self.duration, 1, -1):
             date = self.now - timedelta(days=day)
             fname = "{}-{}-{}-{}.json".format(self.name, date.year, date.month, date.day)
@@ -47,14 +48,16 @@ class RedditScraper:
             if os.path.exists(fpath):
                 print("day {} already downloaded".format(date))
                 continue
-            print("downloading day {}".format(day))
+            print("{} downloading day {}".format(self.name, day))
             uri = self.base.format(day, day-1, self.name)
             data = requests.get(uri).json()
             data = self.enrich_data(data)
             with open(fpath, "w") as f:
                 json.dump(data, f, indent=2)
 
-
-handle = RedditScraper("dakini", 10)
-handle.crawl()
+subs = ["alexistexas", "Celebritypussy", "CelebrityButts", "mombod", "tessafowler", "remylacroix", "rileyreid", "angelawhite", "miakhalifa", "abelladanger", "highresnsfw", "pawg",
+        "celebnsfw", "extramile", "innie", "godpussy", "wifesharing", "barbarapalvin"]
+for sub in subs:
+    handle = RedditScraper(sub, 365)
+    handle.crawl()
 
