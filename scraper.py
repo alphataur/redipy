@@ -40,7 +40,7 @@ class RedditScraper:
 
     def crawl(self):
         print(self.name)
-        for day in range(self.duration, 1, -1):
+        for day in range(1, self.duration, 1):
             date = self.now - timedelta(days=day)
             fname = "{}-{}-{}-{}.json".format(self.name, date.year, date.month, date.day)
             dpath = self.ensure_path()
@@ -55,9 +55,10 @@ class RedditScraper:
             with open(fpath, "w") as f:
                 json.dump(data, f, indent=2)
 
-subs = ["alexistexas", "Celebritypussy", "CelebrityButts", "mombod", "tessafowler", "remylacroix", "rileyreid", "angelawhite", "miakhalifa", "abelladanger", "highresnsfw", "pawg",
-        "celebnsfw", "extramile", "innie", "godpussy", "wifesharing", "barbarapalvin"]
+#subs = ["alexistexas", "Celebritypussy", "CelebrityButts", "mombod", "tessafowler", "remylacroix", "rileyreid", "angelawhite", "miakhalifa", "abelladanger", "highresnsfw", "pawg",
+#        "celebnsfw", "extramile", "innie", "godpussy", "wifesharing", "barbarapalvin"]
+subs = ["ProgrammerHumor"]
 for sub in subs:
-    handle = RedditScraper(sub, 365)
+    handle = RedditScraper(sub, 2000)
     handle.crawl()
 

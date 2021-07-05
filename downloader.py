@@ -25,6 +25,8 @@ class Downloader:
         self.failed = []
         self.session = aiohttp.ClientSession()
 
+    async def close_session(self):
+        await self.session.close()
     def close(self, force=False):
         #gracefull exit
         if not force:
@@ -104,10 +106,11 @@ class Downloader:
     def start(self):
         self.workers = asyncio.gather(*[self.worker() for i in range(self.pool_size)])
         self.loop.run_until_complete(self.workers)
+        self.loop.run_until_complete(self.close_session())
 
 
 signal.signal(signal.SIGINT, exit_handle)
 
 handle = Downloader(pool_size=10)
-handle.consume("eggs/danidaniels/*.json")
+handle.consume(f"eggs/itr/Cynda Mcelvana/*.json")
 handle.start()
